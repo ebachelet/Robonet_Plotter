@@ -264,5 +264,40 @@ class LightcurvesPlot():
 		show(self.finalplot)
 		
 
-		
-		
+class QualityControlPlot():
+
+
+	def __init__(self, quantity_name, quantity_time, quantity_data, couleur='red') :
+
+		self.name = quantity_name
+		self.time = quantity_time
+		self.data = quantity_data
+		self.color = couleur
+
+	def plot_histogram(self):
+
+		figure_histogram = figure(title=self.name+" distribution")
+		hist, edges = np.histogram(self.data, density=True, bins=50)
+
+		figure_histogram.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:],fill_color=self.color, line_color=self.color)
+		figure_histogram.xaxis.axis_label = self.name		
+		figure_histogram.yaxis.axis_label = 'Counts'
+		return figure_histogram
+
+	def plot_quantity_vs_time(self):
+
+		figure_quantity_time = figure(title=self.name)
+	
+
+		figure_quantity_time.scatter(self.time, self.data, color= self.color)
+		figure_quantity_time.xaxis.axis_label = 'Time'
+		figure_quantity_time.yaxis.axis_label = self.name
+
+		return figure_quantity_time
+
+	def generate_the_plot(self):
+
+		self.quantity_time_plot = self.plot_quantity_vs_time()
+		self.quantity_histogram = self.plot_histogram()
+		self.finalplot = gridplot(self.quantity_time_plot,self.quantity_histogram,ncols=2, toolbar_location="right")
+		show(self.finalplot)
