@@ -15,14 +15,44 @@ hexcolor = map(lambda rgb: '#%02x%02x%02x' % (rgb[0] * 255, rgb[1] * 255, rgb[2]
 hexcolor[0] = '#000000'
 
 
+TELESCOPES_COLOR = {'O' : '#190707',
+	            'K' : '#61210B',
+	            'D' : '#FE2EF7',
+		    'E' : '#F781F3',
+                    'F' : '#DF01D7',
+		    'R' : '#F5A9F2',
+		    'S' : '#FF8000', 		
+		    'T' : '#DF3A01',	
+	            'X' : '#4B088A',
+		    'Y' : '#8000FF',
+		    }  		 
+ 
+TELESCOPES_SHAPE = {'O' : 'circle',
+	            'K' : 'circle',
+	            'D' : 'circle',
+		    'E' : 'square',
+                    'F' : 'triangle',
+		    'R' : 'circle',
+		    'S' : 'square', 		
+		    'T' : 'triangle',	
+	            'X' : 'circle',
+		    'Y' : 'triangle',
+		    } 
+
+TELESCOPES_FILTER_COLOR = {'I' : 'circle',
+	            'R' : 'circle',
+	            'i' : 'circle',
+		    'g' : 'diamond',
+		    'r' : 'square',
+		    } 
 def plot_bokeh_segments_for_errorbars(figure, x_data, y_data, y_error, data_color, data_alpha = 0.3):
 
 	figure.segment(x_data, y_data+np.abs(y_error),x_data, y_data-np.abs(y_error), color= data_color, line_alpha= data_alpha)
 
-def plot_bokeh_points_for_errorbars(figure, x_data, y_data, data_color):
+def plot_bokeh_points_for_errorbars(figure, x_data, y_data, data_color, data_shape, data_alpha):
 
-	figure.scatter(x_data, y_data, color= data_color)
-
+	r0 = figure.scatter(x_data, y_data, color= data_color, marker = data_alpha, size = 10)
+	return r0
 def plot_bokeh_points_with_metadata(figure, the_meta_data, hover_name=None):
 
 	metapoints = figure.scatter(x='time', y='mag', fill_color='color', line_color=None, size=4, source=the_meta_data, name=hover_name)
@@ -38,10 +68,34 @@ class PlotTelescope():
 		self.lightcurve = lightcurve
 		self.lightcurve_dictionary = lightcurve_dico 
 		self.couleur = couleur
-
+		
 		self.residuals = {}
 
 		self.define_time_mag_err_mag()
+		try :
+
+			self.couleur = TELESCOPES_COLOR[name[0]]
+		except :
+
+			pass
+
+		try:
+
+			self.shape = TELESCOPES_SHAPE[name[0]]
+
+		except :
+
+			self.shape = 'circle'
+
+
+		try:
+
+			self.alpha = TELESCOPES_FILTER_COLOR[name[1]]
+
+		except :
+
+			self.alpha = 'black'
+
 
 	def define_time_mag_err_mag(self):
 		
@@ -78,14 +132,14 @@ class PlotTelescope():
 		metadata_elements_names = ['time','mag','err_mag','observatory','color']		
 		metadata_dictionnary = {}
 
-		count = 0
-		for key in metadata_elements_names:
+		#count = 0
+		#for key in metadata_elements_names:
 			
-			metadata_dictionnary[key] = metadata_elements[count]
+			#metadata_dictionnary[key] = metadata_elements[count]
 			
-			count += 1
+			#count += 1
 		
-		self.metadata = ColumnDataSource(data=metadata_dictionnary)
+		#self.metadata = ColumnDataSource(data=metadata_dictionnary)
 
 
 class PlotModel():
@@ -100,13 +154,13 @@ class PlotModel():
 		self.define_time_mag()
 
 	def define_time_mag(self):
-		
+
 		self.time = self.lightcurve[:, self.lightcurve_dictionary['time']]
 		self.mag = self.lightcurve[:, self.lightcurve_dictionary['mag']]
 		
 
 
-class LightcurvesPlot():
+class EventPlot():
 
 	def __init__(self, event_name) :
 
@@ -207,10 +261,10 @@ class LightcurvesPlot():
 		for telescope in self.telescopes:
 			
 			plot_bokeh_segments_for_errorbars(self.figure_lightcurve, telescope.time, telescope.mag, telescope.err_mag, telescope.couleur)
-			
-			metapoints = plot_bokeh_points_with_metadata(self.figure_lightcurve, telescope.metadata, hover_name = 'points')
-			
-			legendary.append((telescope.name,[metapoints]))
+			r0 = plot_bokeh_points_for_errorbars(self.figure_lightcurve, telescope.time, telescope.mag,telescope.couleur,telescope.shape, telescope.alpha)
+			#metapoints = plot_bokeh_points_with_metadata(self.figure_lightcurve, telescope.metadata, hover_name = 'points')
+			#import pdb; pdb.set_trace()		
+			legendary.append((telescope.name,[r0]))
 	
 		legend = Legend(legends=legendary, location=(0,-30))
 		self.figure_lightcurve.add_layout(legend,'right')
@@ -232,7 +286,7 @@ class LightcurvesPlot():
 			
 
 			plot_bokeh_segments_for_errorbars(self.figure_residuals, residuals.time, residuals.delta_mag, residuals.err_mag, telescope.couleur)
-			plot_bokeh_points_for_errorbars(self.figure_residuals, residuals.time, residuals.delta_mag, telescope.couleur)
+			plot_bokeh_points_for_errorbars(self.figure_residuals, residuals.time, residuals.delta_mag, telescope.couleur, telescope.shape, telescope.alpha)
 
 	def plot_the_model(self, model_name):
 				
