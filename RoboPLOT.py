@@ -7,6 +7,8 @@ import collections
 from bokeh.plotting import figure, show, output_file,gridplot,vplot
 from bokeh.models import ColumnDataSource, HoverTool, LinearColorMapper, Legend,CheckboxGroup
 from bokeh.models import FixedTicker,PrintfTickFormatter
+from bokeh.embed import components
+from bokeh.resources import CDN
 
 n = 100
 color = plt.cm.jet(np.linspace(0.1, 0.99, n))  # This returns RGBA; convert:
@@ -305,7 +307,7 @@ class EventPlot():
 	
 	def generate_the_plot(self, model_name):
 
-		output_file(self.event_name+'_'+model_name+'.html',title=self.event_name)
+		#output_file(self.event_name+'_'+model_name+'.html',title=self.event_name)
 
 		self.define_telescopes_metadata()
 		self.plot_the_lightcurve_data()
@@ -315,9 +317,10 @@ class EventPlot():
 		
 		
 		self.assemble_lightcurve_and_residual_plots()
-		show(self.finalplot)
 		
-
+		#show(self.finalplot)
+		script, div = components(self.finalplot, CDN) 
+		return script, div
 class QualityControlPlot():
 
 
